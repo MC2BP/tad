@@ -39,7 +39,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(library)
 
 	//Check directory music
 	err = createFolderIfNotExist(*rootPath)
