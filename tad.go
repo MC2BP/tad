@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 )
-
-const LibraryFolder = "Music"
 
 type Library struct {
 	Genres map[string]map[string]Song `json:"genres"`
@@ -20,9 +19,17 @@ type Song struct {
 }
 
 func main() {
+	config := flag.String("f", "", "file containing your library")
+	rootPath := flag.String("p", "", "the path to the folder in which it should downloaded the music")
+	flag.Parse()
+	
+	if *rootPath == "" || *config == "" {
+		fmt.Println("Arguments -f and -p must be provided")
+		return
+	}
 
 	//Read file
-	file, err := os.ReadFile("test.json")
+	file, err := os.ReadFile(*config)
 	if err != nil {
 		panic(err)
 	}
@@ -35,20 +42,20 @@ func main() {
 	fmt.Println(library)
 
 	//Check directory music
-	err = createFolderIfNotExist(LibraryFolder)
+	err = createFolderIfNotExist(*rootPath)
 	if err != nil {
 		panic(err)
 	}
 
 	for genreName, genre := range library.Genres {
-		createFolderIfNotExist(LibraryFolder + "/" + genreName)
+		createFolderIfNotExist(*rootPath+ "/" + genreName)
 		if err != nil {
 			panic(err)
 		}
 		for songName, song := range genre {
 			artists := strings.Join(song.Artists, ", ")
 			songName = artists + " - " + songName + ""
-			path := LibraryFolder + "/" + genreName + "/" + songName + ".%(ext)s"
+			path := *rootPath + "/" + genreName + "/" + songName + ".%(ext)s"
 			// check if song already present
 			_, err := os.Stat(path)
 			if err == nil {
@@ -75,7 +82,6 @@ func main() {
 			}
 		}
 	}
-
 }
 
 func createFolderIfNotExist(path string) error {
